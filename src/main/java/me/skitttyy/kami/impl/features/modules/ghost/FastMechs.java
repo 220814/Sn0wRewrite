@@ -28,18 +28,17 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 
 
-public class FastMechs extends Module
-{
+public class FastMechs extends Module {
     public static FastMechs INSTANCE;
 
-    public FastMechs()
-    {
+    public FastMechs() {
         super("FastMechs", Category.Ghost);
         INSTANCE = this;
     }
+
     public static boolean FAST_CRYSTAL = false;
     Timer breakTimer = new Timer(80);
-    Timer fastTimer = new Timer(160);
+    Timer fastTimer = new Timer(200);
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
@@ -63,12 +62,8 @@ public class FastMechs extends Module
 
     @SubscribeEvent
     public void onPlayerUpdate(TickEvent.VanillaTick event) {
-
-
         if (FAST_CRYSTAL && mc.options.useKey.isPressed()) {
             if (mc.crosshairTarget instanceof EntityHitResult hit) {
-
-
 
 
                 if (breakTimer.isPassed()) {
@@ -110,14 +105,14 @@ public class FastMechs extends Module
 
         if (itemStack.getItem() == Items.TOTEM_OF_UNDYING || itemStack.getItem() == Items.GLOWSTONE_DUST) return 0;
 
-        if(itemStack.getItem() == Items.END_CRYSTAL && FAST_CRYSTAL) return 0;
+        if (itemStack.getItem() == Items.END_CRYSTAL && FAST_CRYSTAL) return 0;
 
-        if(itemStack.isEmpty()) return 0;
+        if (itemStack.isEmpty()) return 0;
         return -1;
     }
+
     @Override
-    public void onEnable()
-    {
+    public void onEnable() {
         super.onEnable();
         if (NullUtils.nullCheck()) return;
 
@@ -125,8 +120,7 @@ public class FastMechs extends Module
 
 
     @Override
-    public String getDescription()
-    {
+    public String getDescription() {
         return "FastMechs: makes u able to anchor and safe anchor fast like marlow";
     }
 }
