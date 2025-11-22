@@ -24,7 +24,7 @@ public class KamiMod implements ModInitializer
     /**
      * Git hash of the client
      */
-    public static final String HASH = "93fab48fb36f6c76";
+    public static final String HASH = "bfca715f8e0717cc";
 
     /**
      * The snowflake text ❄
