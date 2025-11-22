@@ -6,10 +6,10 @@ https://www.youtube.com/watch?v=2AEAn_b_nxc
 ## Setup
 
 For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
-
 ## IF YOUR A YOUTUBER MAKING A REVIEW
 please provide your discord so i can add you i will help you use the client and make you configs for whatever server u want to try.
 i have been told that kilab gaming is making a review please make a issue with your discord so i can config as me and jqq are like the only ppl who can config this hack
+
 ## Basic Info
 
 Hello all I am skitty and I am releasing my 2b2t hacked client after 5 years. It is widely considered the best client for crystal pvp, and pretty much the most sought after client in all of hvh.
@@ -19,6 +19,7 @@ bunch of original bypasses. I also want to make a note to the community i was sc
 
 I never recieved the shader loader I was promised, and never got paid when i was promised to be paid aswell. So I got someone to send it to me and leaked there src.
 
+[Frequently asked questions](https://github.com/Skitttyy/Sn0w/blob/main/FAQ.md)
 # Warning before using
 This client is extremely old (5 years) and is a huge mess of things i have made throughout my teenage years. I was 13 when i begun working on this and i am 18 now. Alot of things are pasted, and I will make credits soon. This client is private and has alot of weird features and names that you might not understand. All users of this client have exclusively used it for 5 years and many things that might seem conventional for others are completely twisted in this client. A feature might not do what u expect it to do, or might not work the way you want it to, but i built it around the way me jqq and kelan played in crystal pvp so it might be good for some people, but for others it might not be so. It's kinda a client u have to get used to using.
 
