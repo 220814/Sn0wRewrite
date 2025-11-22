@@ -27,21 +27,18 @@ import java.util.Objects;
 @Mixin(ChatScreen.class)
 public class MixinChatScreen extends Screen {
 
-    protected MixinChatScreen(Text title)
-    {
+    protected MixinChatScreen(Text title) {
         super(title);
     }
 
 
     @Shadow
-    public void sendMessage(String chatText, boolean addToHistory)
-    {
+    public void sendMessage(String chatText, boolean addToHistory) {
     }
 
 
     @Inject(method = "sendMessage", at = @At(value = "INVOKE", target = "Ljava/lang/String;startsWith(Ljava/lang/String;)Z"), cancellable = true)
-    public void hookEventChat(String chatText, boolean addToHistory, CallbackInfo ci)
-    {
+    public void hookEventChat(String chatText, boolean addToHistory, CallbackInfo ci) {
         ClientChatEvent eventChat = new ClientChatEvent(chatText);
         eventChat.post();
         if (eventChat.isCancelled())
@@ -56,14 +53,11 @@ public class MixinChatScreen extends Screen {
      * @reason inject into keypress to remove bs
      */
     @Inject(method = "keyPressed", at = @At(value = "HEAD"), cancellable = true)
-    public void keyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir)
-    {
-        if (chatField != null && chatField.getText().startsWith(CommandManager.INSTANCE.PREFIX) && keyCode == 258)
-        {
+    public void keyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+        if (chatField != null && chatField.getText().startsWith(CommandManager.INSTANCE.PREFIX) && keyCode == 258) {
             String text = chatField.getText();
             String commandText = getCommandText(text, false);
-            if (!Objects.equals(commandText, ""))
-            {
+            if (!Objects.equals(commandText, "")) {
                 chatField.setText(text + commandText);
             }
             cir.setReturnValue(true);
@@ -71,69 +65,53 @@ public class MixinChatScreen extends Screen {
     }
 
     @Inject(method = "render", at = @At(value = "TAIL"))
-    public void renderChat(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci)
-    {
+    public void renderChat(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         if (chatField == null) return;
 
-        if (chatField.getText().startsWith(CommandManager.INSTANCE.PREFIX))
-        {
+        if (chatField.getText().startsWith(CommandManager.INSTANCE.PREFIX)) {
             processAutoComplete(context, chatField.getText());
             RenderUtil.renderOutline(context.getMatrices(), 2, this.height - 14, chatField.getWidth(), chatField.getHeight(), Color.CYAN.getRGB(), true);
-        } else if (chatField.getText().startsWith("="))
-        {
-            RenderUtil.renderOutline(context.getMatrices(), 2, this.height - 14, chatField.getWidth(), chatField.getHeight(), Color.BLUE.getRGB(), true);
         }
 
     }
 
     @Unique
-    public void processAutoComplete(DrawContext context, String text)
-    {
+    public void processAutoComplete(DrawContext context, String text) {
 
         int x = MinecraftClient.getInstance().textRenderer.getWidth(text + " ");
         int y = chatField.drawsBackground() ? chatField.getY() + (chatField.getHeight() - 8) / 2 : chatField.getY();
         String commandText = getCommandText(text, true);
-        if (!commandText.isEmpty())
-        {
+        if (!commandText.isEmpty()) {
             context.drawTextWithShadow(MinecraftClient.getInstance().textRenderer, commandText, x, y, new Color(134, 242, 252).getRGB());
         }
     }
 
     @Unique
-    public String getCommandText(String text, boolean description)
-    {
-        try
-        {
+    public String getCommandText(String text, boolean description) {
+        try {
             String sub = text.substring(1);
 
             if (sub.isEmpty()) return "";
 
             String[] args = sub.split(" (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
             Pair<Command, String> command = null;
-            if (args[0] != null)
-            {
+            if (args[0] != null) {
                 command = CommandManager.INSTANCE.findClosestMatchingCommand(args[0]);
-            } else
-            {
+            } else {
                 return "";
             }
-            if (command == null)
-            {
+            if (command == null) {
                 return "";
             }
-            if (text.endsWith(" ") && command.value().equals(args[0]))
-            {
+            if (text.endsWith(" ") && command.value().equals(args[0])) {
                 return CommandUtils.getAutocomplete(command.key(), "", args.length - 1, true, args);
-            } else if (text.endsWith(" "))
-            {
+            } else if (text.endsWith(" ")) {
                 return "";
             }
 
-            if (args.length == 1)
-            {
+            if (args.length == 1) {
                 return command.value().substring(args[0].length()) + (description ? Formatting.GRAY + " (" + command.key().getDesc() + ")" : "");
-            } else if (Objects.equals(command.value(), args[0]))
-            {
+            } else if (Objects.equals(command.value(), args[0])) {
                 int lengthMinus = args.length - 1;
 
 
@@ -142,8 +120,7 @@ public class MixinChatScreen extends Screen {
                 if (!fill.isEmpty())
                     return fill.substring(argument.length());
             }
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
 
         }
         return "";
