@@ -126,7 +126,11 @@ public abstract class MixinMinecraftClient {
             cir.setReturnValue(true);
         }
     }
-
+    @Inject(method = "Lnet/minecraft/client/MinecraftClient;tick()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/GameRenderer;tick()V"))
+    public void hookGameRenderTick(CallbackInfo ci)
+    {
+        new TickEvent.GameRenderTick().post();
+    }
     @Inject(method = "onResolutionChanged", at = @At("TAIL"))
     private void captureResize(CallbackInfo ci)
     {

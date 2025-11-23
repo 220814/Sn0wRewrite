@@ -2,40 +2,26 @@ package me.skitttyy.kami.impl.features.modules.movement;
 
 import me.skitttyy.kami.api.event.eventbus.Priority;
 import me.skitttyy.kami.api.event.eventbus.SubscribeEvent;
-import me.skitttyy.kami.api.event.events.LivingEvent;
 import me.skitttyy.kami.api.event.events.TickEvent;
 import me.skitttyy.kami.api.event.events.network.PacketEvent;
 import me.skitttyy.kami.api.feature.module.Module;
 import me.skitttyy.kami.api.management.PacketManager;
 import me.skitttyy.kami.api.management.RotationManager;
 import me.skitttyy.kami.api.utils.NullUtils;
-import me.skitttyy.kami.api.utils.chat.ChatUtils;
 import me.skitttyy.kami.api.utils.players.PlayerUtils;
 import me.skitttyy.kami.api.value.Value;
 import me.skitttyy.kami.api.value.builder.ValueBuilder;
-import me.skitttyy.kami.impl.features.modules.client.Manager;
 import me.skitttyy.kami.impl.features.modules.render.Freecam;
 import me.skitttyy.kami.impl.gui.ClickGui;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CobwebBlock;
-import net.minecraft.block.SweetBerryBushBlock;
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.item.BowItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.PotionItem;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.c2s.play.*;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -88,7 +74,7 @@ public class NoSlow extends Module
 
 
     @SubscribeEvent(Priority.MODULE_LAST)
-    private void onTick(TickEvent.ClientTickEvent event)
+    private void onTick(TickEvent.GameRenderTick event)
     {
         if (NullUtils.nullCheck()) return;
 

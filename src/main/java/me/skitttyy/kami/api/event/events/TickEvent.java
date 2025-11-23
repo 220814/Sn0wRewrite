@@ -22,6 +22,14 @@ public class TickEvent {
     }
 
 
+    /**
+     * @see me.skitttyy.kami.mixin.MixinMinecraftClient
+     */
+    public static class GameRenderTick extends Event {
+
+    }
+
+
 
     /**
      * @see me.skitttyy.kami.mixin.MixinMinecraftClient
