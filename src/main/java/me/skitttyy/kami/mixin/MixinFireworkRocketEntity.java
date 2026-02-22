@@ -18,37 +18,34 @@ import static me.skitttyy.kami.api.wrapper.IMinecraft.mc;
 @Mixin(FireworkRocketEntity.class)
 public class MixinFireworkRocketEntity implements IMinecraft {
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;setVelocity(Lnet/minecraft/util/math/Vec3d;)V"))
-    public void setVelocityProxy(Entity instance, Vec3d vec3d) {
-        if (instance == MinecraftClient.getInstance().player) {
-            if (FastFirework.INSTANCE.isEnabled()) {
-                Vec3d rotationVector = mc.player.getRotationVector();
-                if (AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
-                    rotationVector = RotationManager.INSTANCE.getRotationVector();
-                }
-
-                double d = 1.5;
-                double e = FastFirework.INSTANCE.getSpeed();
-                Vec3d currentVelocity = instance.getVelocity();
-                instance.setVelocity(currentVelocity.add(
-                        rotationVector.x * e + (rotationVector.x * d - currentVelocity.x) * 0.5,
-                        rotationVector.y * e + (rotationVector.y * d - currentVelocity.y) * 0.5,
-                        rotationVector.z * e + (rotationVector.z * d - currentVelocity.z) * 0.5
-                ));
-                return;
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;addVelocity(Lnet/minecraft/util/math/Vec3d;)V"))
+    private void setVelocityProxy(Entity instance, Vec3d velocity) {
+        if (instance == MinecraftClient.getInstance().player && FastFirework.INSTANCE.isEnabled()) {
+            Vec3d rotationVector = mc.player.getRotationVector();
+            if (AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
+                rotationVector = RotationManager.INSTANCE.getRotationVector();
             }
+
+            double speed = FastFirework.INSTANCE.getSpeed();
+            Vec3d currentVel = instance.getVelocity();
+            
+            instance.setVelocity(currentVel.add(
+                rotationVector.x * speed + (rotationVector.x * 1.5 - currentVel.x) * 0.5,
+                rotationVector.y * speed + (rotationVector.y * 1.5 - currentVel.y) * 0.5,
+                rotationVector.z * speed + (rotationVector.z * 1.5 - currentVel.z) * 0.5
+            ));
+        } else {
+            instance.addVelocity(velocity);
         }
-        instance.setVelocity(vec3d);
     }
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getRotationVector()Lnet/minecraft/util/math/Vec3d;"))
-    public Vec3d getRotationVectorProxy(LivingEntity instance) {
+    private Vec3d getRotationVectorProxy(LivingEntity instance) {
         if (instance == MinecraftClient.getInstance().player) {
-            if (AntiCheat.INSTANCE.strafeFix.getValue() && MinecraftClient.getInstance().player != null && RotationManager.INSTANCE.getRotation() != null) {
+            if (AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
                 return RotationManager.INSTANCE.getRotationVector();
             }
         }
         return instance.getRotationVector();
     }
 }
-                    
