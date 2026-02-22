@@ -28,12 +28,13 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import static me.skitttyy.kami.api.wrapper.IMinecraft.mc;
 
-@Mixin(ClientPlayerEntity.class)
+@Mixin(value = ClientPlayerEntity.class, priority = 1001)
 public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity implements IMinecraft, IClientPlayerEntity {
     @Shadow @Final public ClientPlayNetworkHandler networkHandler;
     @Shadow public double lastX;
@@ -47,7 +48,6 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
     @Shadow private boolean lastOnGround;
     @Shadow private int ticksSinceLastPositionPacketSent;
     @Shadow private boolean autoJumpEnabled;
-    @Unique private boolean ticking;
 
     public MixinClientPlayerEntity() {
         super(MinecraftClient.getInstance().world, MinecraftClient.getInstance().player.getGameProfile());
@@ -109,7 +109,6 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
                 if (hasVehicle()) {
                     Vec3d vec3d = getVelocity();
                     networkHandler.sendPacket(new PlayerMoveC2SPacket.Full(vec3d.x, -999.0, vec3d.z, getYaw(), getPitch(), ground));
-                    bl2 = false;
                 } else if (bl2 && bl3) {
                     networkHandler.sendPacket(new PlayerMoveC2SPacket.Full(x, y, z, yaw, pitch, ground));
                 } else if (bl2) {
@@ -184,13 +183,14 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
         }
     }
 
-    @Inject(method = "setSprinting", at = @At("HEAD"), cancellable = true)
-    private void hookSetSprinting(boolean sprinting, CallbackInfo ci) {
+    @Redirect(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;setSprinting(Z)V"))
+    private void proxySetSprinting(ClientPlayerEntity instance, boolean sprinting) {
         final LivingEvent.SetSprinting sprintEvent = new LivingEvent.SetSprinting();
         sprintEvent.post();
         if (sprintEvent.isCancelled()) {
-            super.setSprinting(true);
-            ci.cancel();
+            instance.setSprinting(true);
+        } else {
+            instance.setSprinting(sprinting);
         }
     }
 
@@ -212,11 +212,12 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
         }
     }
 
-    @Inject(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isUsingItem()Z"), cancellable = true)
-    private void hookIsUsingItem(CallbackInfo ci) {
+    @Redirect(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isUsingItem()Z"))
+    private boolean proxyIsUsingItem(ClientPlayerEntity instance) {
         if (NoSlow.INSTANCE.isEnabled() && NoSlow.INSTANCE.canNoSlow()) {
-            ci.cancel();
+            return false;
         }
+        return instance.isUsingItem();
     }
 
     @Inject(method = "tickNausea", at = @At("HEAD"), cancellable = true)
@@ -224,3 +225,4 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
         if (BetterPortals.INSTANCE.isEnabled()) ci.cancel();
     }
 }
+        
