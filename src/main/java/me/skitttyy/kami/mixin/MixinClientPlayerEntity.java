@@ -224,4 +224,3 @@ public abstract class MixinClientPlayerEntity extends AbstractClientPlayerEntity
         if (BetterPortals.INSTANCE.isEnabled()) ci.cancel();
     }
 }
-    
