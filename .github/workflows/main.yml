@@ -32,5 +32,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Sn0wRewrite
-          path: build/libs/sn0w-2.1.2.jar
+          path: build/libs/sn0wRewrite-2.1.2.jar
           
