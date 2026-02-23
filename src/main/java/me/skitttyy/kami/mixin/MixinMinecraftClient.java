@@ -3,14 +3,11 @@ package me.skitttyy.kami.mixin;
 import me.skitttyy.kami.api.event.events.TickEvent;
 import me.skitttyy.kami.api.event.events.render.*;
 import me.skitttyy.kami.api.gui.font.Fonts;
-import me.skitttyy.kami.api.management.ModuleManager;
 import me.skitttyy.kami.api.utils.render.WindowResizeCallback;
 import me.skitttyy.kami.api.wrapper.IMinecraft;
 import me.skitttyy.kami.impl.features.modules.client.FontModule;
 import me.skitttyy.kami.impl.features.modules.client.Optimizer;
-import me.skitttyy.kami.impl.features.modules.ghost.FastMechs;
 import me.skitttyy.kami.impl.features.modules.misc.MultiTask;
-import me.skitttyy.kami.mixin.accessor.IMinecraftClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.RunArgs;
 import net.minecraft.client.gui.DrawContext;
@@ -39,7 +36,7 @@ public abstract class MixinMinecraftClient implements IMinecraft {
     private void renderHook(boolean tick, CallbackInfo ci) {
         new FrameEvent.FrameFlipEvent().post();
         if (mc.world != null && mc.player != null) {
-            ModuleManager.INSTANCE.onRender3D(new Render3DEvent());
+            new Render3DEvent().post();
         }
     }
 
@@ -47,15 +44,12 @@ public abstract class MixinMinecraftClient implements IMinecraft {
     private void render2DHook(boolean tick, CallbackInfo ci) {
         RenderTickCounter tickCounter = mc.getRenderTickCounter();
         DrawContext drawContext = new DrawContext(mc, mc.getBufferBuilders().getEntityVertexConsumers());
-        ModuleManager.INSTANCE.onRender2D(new Render2DEvent(drawContext, tickCounter.getTickDelta(true)));
+        new Render2DEvent(drawContext, tickCounter.getTickDelta(true)).post();
     }
 
     @Inject(method = "tick", at = @At("HEAD"), remap = false)
     private void onTickPre(CallbackInfo ci) {
         new TickEvent.ClientTickEvent().post();
-        if (mc.world != null && mc.player != null) {
-            ModuleManager.INSTANCE.onTick();
-        }
     }
 
     @Inject(method = "tick", at = @At("TAIL"), remap = false)
@@ -71,7 +65,9 @@ public abstract class MixinMinecraftClient implements IMinecraft {
     @Inject(method = "<init>", at = @At("TAIL"), remap = false)
     void postWindowInit(RunArgs args, CallbackInfo ci) {
         try {
-            Fonts.CUSTOM = Fonts.create(FontModule.INSTANCE.fontSize.getValue().intValue());
+            if (FontModule.INSTANCE != null) {
+                Fonts.CUSTOM = Fonts.create(FontModule.INSTANCE.fontSize.getValue().intValue());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -79,17 +75,17 @@ public abstract class MixinMinecraftClient implements IMinecraft {
 
     @Inject(method = "handleBlockBreaking", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isUsingItem()Z"), cancellable = true, remap = false)
     private void hookIsUsingItem(boolean breaking, CallbackInfo ci) {
-        if (MultiTask.INSTANCE.isEnabled()) ci.cancel();
+        if (MultiTask.INSTANCE != null && MultiTask.INSTANCE.isEnabled()) ci.cancel();
     }
 
     @Inject(method = "doItemUse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;isBreakingBlock()Z"), cancellable = true, remap = false)
     private void hookIsBreakingBlock(CallbackInfo ci) {
-        if (MultiTask.INSTANCE.isEnabled()) ci.cancel();
+        if (MultiTask.INSTANCE != null && MultiTask.INSTANCE.isEnabled()) ci.cancel();
     }
 
     @Inject(method = "getFramerateLimit", at = @At("HEAD"), cancellable = true, remap = false)
     private void onGetFramerateLimit(CallbackInfoReturnable<Integer> info) {
-        if (Optimizer.INSTANCE.isEnabled() && Optimizer.INSTANCE.unfocusedFPS.getValue() && !isWindowFocused())
+        if (Optimizer.INSTANCE != null && Optimizer.INSTANCE.isEnabled() && Optimizer.INSTANCE.unfocusedFPS.getValue() && !isWindowFocused())
             info.setReturnValue((int) Math.min(Optimizer.INSTANCE.fps.getValue().intValue(), this.options.getMaxFps().getValue()));
     }
 
@@ -105,11 +101,6 @@ public abstract class MixinMinecraftClient implements IMinecraft {
         WindowResizeCallback.EVENT.invoker().onResized((MinecraftClient) (Object) this, this.window);
     }
 
-    @Inject(method = "stop", at = @At("HEAD"), remap = false)
-    private void onShutdown(CallbackInfo ci) {
-        ModuleManager.INSTANCE.onShutdown();
-    }
-
     @ModifyVariable(method = "setScreen", at = @At("HEAD"), argsOnly = true, remap = false)
     private Screen modifyScreen(Screen value) {
         ScreenEvent.SetScreen event = new ScreenEvent.SetScreen(value);
@@ -117,4 +108,4 @@ public abstract class MixinMinecraftClient implements IMinecraft {
         return event.getGuiScreen();
     }
 }
-    
+                                        
