@@ -12,10 +12,7 @@ import me.skitttyy.kami.impl.features.modules.player.Tweaks;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.event.GameEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,31 +28,8 @@ public abstract class MixinEntity implements IMinecraft {
         return null;
     }
 
-    @Shadow
-    public abstract Box getBoundingBox();
-
-    @Shadow
-    public abstract Vec3d getVelocity();
-
-    @Shadow
-    public abstract void setVelocity(Vec3d velocity);
-
-    @Shadow
-    public abstract boolean isSprinting();
-
-    @Shadow
-    public boolean velocityDirty;
-
-    @Shadow
-    public abstract void updateVelocity(float speed, Vec3d movementInput);
-
-    @Shadow
-    public abstract void emitGameEvent(RegistryEntry<GameEvent> event);
-
-    @Shadow
-    public abstract boolean isSneaking();
-
-    @Inject(method = "method_5705", at = @At(value = "HEAD"), cancellable = true)
+    // method_5705 = pushAwayFrom
+    @Inject(method = "pushAwayFrom", at = @At("HEAD"), cancellable = true, remap = false)
     private void hookPushAwayFrom(Entity entity, CallbackInfo ci) {
         PushEvent.Entities event = new PushEvent.Entities(((Entity) ((Object) this)), entity);
         event.post();
@@ -64,10 +38,13 @@ public abstract class MixinEntity implements IMinecraft {
         }
     }
 
-    @Inject(method = "method_5784", at = @At(value = "HEAD"), cancellable = true)
+    // method_5784 = updateVelocity
+    @Inject(method = "updateVelocity", at = @At("HEAD"), cancellable = true, remap = false)
     private void hookUpdateVelocity(float speed, Vec3d movementInput, CallbackInfo ci) {
         if ((Object) this == mc.player) {
-            LookEvent.LookVelocityEvent updateVelocityEvent = new LookEvent.LookVelocityEvent(movementInput, speed, mc.player.getYaw(), movementInputToVelocity(movementInput, speed, mc.player.getYaw()));
+            LookEvent.LookVelocityEvent updateVelocityEvent = new LookEvent.LookVelocityEvent(
+                movementInput, speed, mc.player.getYaw(), movementInputToVelocity(movementInput, speed, mc.player.getYaw())
+            );
             updateVelocityEvent.post();
             if (updateVelocityEvent.isCancelled()) {
                 ci.cancel();
@@ -76,7 +53,8 @@ public abstract class MixinEntity implements IMinecraft {
         }
     }
 
-    @Inject(method = "method_18376", at = @At("HEAD"), cancellable = true)
+    // method_18376 = getPose
+    @Inject(method = "getPose", at = @At("HEAD"), cancellable = true, remap = false)
     private void getPoseHook(CallbackInfoReturnable<EntityPose> info) {
         if ((Object) this == mc.player) {
             if (LongJump.isGrimJumping() || Flight.isGrimFlying() || ElytraFly.isPacketFlying()) {
@@ -87,28 +65,28 @@ public abstract class MixinEntity implements IMinecraft {
         }
     }
 
-    @Inject(method = "method_36454", at = @At("HEAD"), cancellable = true)
+    // method_36454 = isCrawling
+    @Inject(method = "isCrawling", at = @At("HEAD"), cancellable = true, remap = false)
     private void isCrawlingHook(CallbackInfoReturnable<Boolean> info) {
         if ((Object) this == mc.player && Tweaks.INSTANCE.isEnabled() && Tweaks.INSTANCE.noCrawl.getValue()) {
             info.setReturnValue(false);
         }
     }
 
-    @Inject(method = "method_5723", at = @At(value = "HEAD"), cancellable = true)
+    // method_5723 = getTeamColorValue
+    @Inject(method = "getTeamColorValue", at = @At("HEAD"), cancellable = true, remap = false)
     private void hookGetTeamColorValue(CallbackInfoReturnable<Integer> cir) {
         TeamColorEvent event = new TeamColorEvent((Entity) (Object) this);
         event.post();
         if (event.isCancelled()) {
             cir.setReturnValue(event.getColor());
-            cir.cancel();
         }
     }
 
-    @Inject(method = "method_5844", at = @At(value = "HEAD"), cancellable = true)
+    // method_5844 = slowMovement
+    @Inject(method = "slowMovement", at = @At("HEAD"), cancellable = true, remap = false)
     private void hookSlowMovement(BlockState state, Vec3d multiplier, CallbackInfo ci) {
-        if ((Object) this != mc.player) {
-            return;
-        }
+        if ((Object) this != mc.player) return;
         LivingEvent.BlockSlowdown event = new LivingEvent.BlockSlowdown(state);
         event.post();
         if (event.isCancelled()) {
@@ -116,5 +94,4 @@ public abstract class MixinEntity implements IMinecraft {
         }
     }
 }
-
-                                                                                                                                                                
+                                    
