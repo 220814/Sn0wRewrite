@@ -14,8 +14,6 @@ import me.skitttyy.kami.mixin.accessor.IMinecraftClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.RunArgs;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.util.Window;
 import net.minecraft.entity.Entity;
@@ -31,37 +29,37 @@ import static me.skitttyy.kami.api.wrapper.IMinecraft.mc;
 @Mixin(MinecraftClient.class)
 public abstract class MixinMinecraftClient {
     @Shadow
-    public abstract boolean isWindowFocused();
+    public abstract boolean method_1569(); // isWindowFocused
 
     @Shadow
     @Final
-    private Window window;
+    private Window field_1704; // window
 
     @Shadow
     @Final
-    public GameOptions options;
+    public GameOptions field_1690; // options
 
-    @Inject(method = "render", at = @At("HEAD"))
-    public void render(CallbackInfo ci) {
+    @Inject(method = "method_1523", at = @At("HEAD")) // render
+    public void render(boolean tick, CallbackInfo ci) {
         new FrameEvent.FrameFlipEvent().post();
     }
 
-    @Inject(method = "tick", at = @At("HEAD"))
+    @Inject(method = "method_1508", at = @At("HEAD")) // tick
     public void tickPre(CallbackInfo ci) {
         new TickEvent.ClientTickEvent().post();
     }
 
-    @Inject(method = "tick", at = @At(value = "TAIL"))
+    @Inject(method = "method_1508", at = @At(value = "TAIL")) // tick
     public void tickPost(CallbackInfo ci) {
         new TickEvent.AfterClientTickEvent().post();
     }
 
-    @Inject(method = "handleInputEvents", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isUsingItem()Z"), slice = @Slice(to = @At(value = "INVOKE", target = "Lnet/minecraft/client/MinecraftClient;doAttack()Z")))
+    @Inject(method = "method_1507", at = @At(value = "INVOKE", target = "Lnet/minecraft/class_746;method_6115()Z"), slice = @Slice(to = @At(value = "INVOKE", target = "Lnet/minecraft/class_310;method_1536()Z"))) // handleInputEvents, isUsingItem, doAttack
     public void hookEventAttack(CallbackInfo ci) {
         new TickEvent.VanillaTick().post();
     }
 
-    @Inject(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;overlay:Lnet/minecraft/client/gui/screen/Overlay;"))
+    @Inject(method = "method_1508", at = @At(value = "FIELD", target = "Lnet/minecraft/client/class_310;field_1765:Lnet/minecraft/class_408;")) // tick, overlay
     public void hookInputTick(CallbackInfo ci) {
         new TickEvent.InputTick().post();
     }
@@ -75,47 +73,46 @@ public abstract class MixinMinecraftClient {
         }
     }
 
-    @Inject(method = "handleBlockBreaking", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isUsingItem()Z"), cancellable = true)
+    @Inject(method = "method_1537", at = @At(value = "INVOKE", target = "Lnet/minecraft/class_746;method_6115()Z"), cancellable = true) // handleBlockBreaking, isUsingItem
     private void hookIsUsingItem(boolean breaking, CallbackInfo ci) {
         if (MultiTask.INSTANCE.isEnabled()) {
             ci.cancel();
         }
     }
 
-    @Inject(method = "doItemUse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;isBreakingBlock()Z"), cancellable = true)
+    @Inject(method = "method_1531", at = @At(value = "INVOKE", target = "Lnet/minecraft/class_636;method_2923()Z"), cancellable = true) // doItemUse, isBreakingBlock
     private void hookIsBreakingBlock(CallbackInfo ci) {
         if (MultiTask.INSTANCE.isEnabled()) {
             ci.cancel();
         }
     }
 
-    @Inject(method = "getFramerateLimit", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "method_1483", at = @At("HEAD"), cancellable = true) // getFramerateLimit
     private void onGetFramerateLimit(CallbackInfoReturnable<Integer> info) {
-        if (Optimizer.INSTANCE.isEnabled() && Optimizer.INSTANCE.unfocusedFPS.getValue() && !isWindowFocused())
-            info.setReturnValue((int) Math.min(Optimizer.INSTANCE.fps.getValue().intValue(), this.options.getMaxFps().getValue()));
+        if (Optimizer.INSTANCE.isEnabled() && Optimizer.INSTANCE.unfocusedFPS.getValue() && !method_1569())
+            info.setReturnValue((int) Math.min(Optimizer.INSTANCE.fps.getValue().intValue(), this.field_1690.getMaxFps().getValue()));
     }
 
-    @Inject(method = "hasOutline", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "method_1490", at = @At(value = "HEAD"), cancellable = true) // hasOutline
     private void hookHasOutline(Entity entity, CallbackInfoReturnable<Boolean> cir) {
         EntityOutlineEvent entityOutlineEvent = new EntityOutlineEvent(entity);
         entityOutlineEvent.post();
         if (entityOutlineEvent.isCancelled()) {
-            cir.cancel();
             cir.setReturnValue(true);
         }
     }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/GameRenderer;tick()V"))
+    @Inject(method = "method_1508", at = @At(value = "INVOKE", target = "Lnet/minecraft/class_757;method_3192()V")) // tick, GameRenderer.tick
     public void hookGameRenderTick(CallbackInfo ci) {
         new TickEvent.GameRenderTick().post();
     }
 
-    @Inject(method = "onResolutionChanged", at = @At("TAIL"))
+    @Inject(method = "method_1514", at = @At("TAIL")) // onResolutionChanged
     private void captureResize(CallbackInfo ci) {
-        WindowResizeCallback.EVENT.invoker().onResized((MinecraftClient) (Object) this, this.window);
+        WindowResizeCallback.EVENT.invoker().onResized((MinecraftClient) (Object) this, this.field_1704);
     }
 
-    @Inject(method = "handleInputEvents", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;itemUseCooldown:I"))
+    @Inject(method = "method_1507", at = @At(value = "FIELD", target = "Lnet/minecraft/client/class_310;field_1752:I")) // handleInputEvents, itemUseCooldown
     public void hookItemUseCooldown(CallbackInfo ci) {
         if (mc.player != null && FastMechs.INSTANCE.isEnabled()) {
             int wantedDelay = FastMechs.INSTANCE.getWantedDelay(mc.player.getMainHandStack());
@@ -126,11 +123,11 @@ public abstract class MixinMinecraftClient {
         }
     }
 
-    @ModifyVariable(method = "setScreen", at = @At(value = "HEAD"), argsOnly = true)
+    @ModifyVariable(method = "method_1504", at = @At(value = "HEAD"), argsOnly = true) // setScreen
     private Screen modifyScreen(Screen value) {
         ScreenEvent.SetScreen event = new ScreenEvent.SetScreen(value);
         event.post();
         return event.getGuiScreen();
     }
 }
-            
+                       
