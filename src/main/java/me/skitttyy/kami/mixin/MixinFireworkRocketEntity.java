@@ -17,7 +17,7 @@ import static me.skitttyy.kami.api.wrapper.IMinecraft.mc;
 @Mixin(FireworkRocketEntity.class)
 public class MixinFireworkRocketEntity implements IMinecraft {
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;setVelocity(DDD)V"))
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;method_18075(DDD)V"))
     private void setVelocityProxy(Entity instance, double x, double y, double z) {
         if (instance == MinecraftClient.getInstance().player && FastFirework.INSTANCE.isEnabled()) {
             Vec3d rotationVector = mc.player.getRotationVector();
