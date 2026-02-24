@@ -30,19 +30,11 @@ import static me.skitttyy.kami.api.wrapper.IMinecraft.mc;
 
 @Mixin(MinecraftClient.class)
 public abstract class MixinMinecraftClient {
-    @Shadow
-    public abstract boolean isWindowFocused();
-
-    @Shadow
-    @Final
-    private Window window;
-
-    @Shadow
-    @Final
-    public GameOptions options;
-
+    @Shadow public abstract boolean isWindowFocused();
+    @Shadow @Final private Window window;
+    @Shadow @Final public GameOptions options;
     @Inject(method = "render", at = @At("HEAD"))
-    public void render(boolean tick, CallbackInfo ci) {
+    public void renderHook(boolean tick, CallbackInfo ci) {
         new FrameEvent.FrameFlipEvent().post();
     }
 
@@ -51,7 +43,7 @@ public abstract class MixinMinecraftClient {
         new TickEvent.ClientTickEvent().post();
     }
 
-    @Inject(method = "tick", at = @At(value = "TAIL"))
+    @Inject(method = "tick", at = @At("TAIL"))
     public void tickPost(CallbackInfo ci) {
         new TickEvent.AfterClientTickEvent().post();
     }
@@ -61,7 +53,7 @@ public abstract class MixinMinecraftClient {
         new TickEvent.VanillaTick().post();
     }
 
-    @Inject(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;overlay:Lnet/minecraft/client/gui/screen/Overlay;"))
+    @Inject(method = "tick", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;overlay:Lnet/minecraft/client/gui/screen/Overlay;", ordinal = 0))
     public void hookInputTick(CallbackInfo ci) {
         new TickEvent.InputTick().post();
     }
@@ -91,7 +83,7 @@ public abstract class MixinMinecraftClient {
             info.setReturnValue((int) Math.min(Optimizer.INSTANCE.fps.getValue().intValue(), this.options.getMaxFps().getValue()));
     }
 
-    @Inject(method = "hasOutline", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "hasOutline", at = @At("HEAD"), cancellable = true)
     private void hookHasOutline(Entity entity, CallbackInfoReturnable<Boolean> cir) {
         EntityOutlineEvent entityOutlineEvent = new EntityOutlineEvent(entity);
         entityOutlineEvent.post();
@@ -100,28 +92,12 @@ public abstract class MixinMinecraftClient {
         }
     }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/GameRenderer;tick()V"))
-    public void hookGameRenderTick(CallbackInfo ci) {
-        new TickEvent.GameRenderTick().post();
-    }
-
     @Inject(method = "onResolutionChanged", at = @At("TAIL"))
     private void captureResize(CallbackInfo ci) {
         WindowResizeCallback.EVENT.invoker().onResized((MinecraftClient) (Object) this, this.window);
     }
 
-    @Inject(method = "handleInputEvents", at = @At(value = "FIELD", target = "Lnet/minecraft/client/MinecraftClient;itemUseCooldown:I"))
-    public void hookItemUseCooldown(CallbackInfo ci) {
-        if (mc.player != null && FastMechs.INSTANCE.isEnabled()) {
-            int wantedDelay = FastMechs.INSTANCE.getWantedDelay(mc.player.getMainHandStack());
-            if (wantedDelay != -1) {
-                if (((IMinecraftClient) mc).getItemUseCooldown() > wantedDelay)
-                    ((IMinecraftClient) mc).setItemUseCooldown(wantedDelay);
-            }
-        }
-    }
-
-    @ModifyVariable(method = "setScreen", at = @At(value = "HEAD"), argsOnly = true)
+    @ModifyVariable(method = "setScreen", at = @At("HEAD"), argsOnly = true)
     private Screen modifyScreen(Screen value) {
         ScreenEvent.SetScreen event = new ScreenEvent.SetScreen(value);
         event.post();
