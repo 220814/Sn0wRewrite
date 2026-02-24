@@ -22,39 +22,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public abstract class MixinEntity implements IMinecraft {
-
-    @Shadow
-    private static Vec3d movementInputToVelocity(Vec3d movementInput, float speed, float yaw) {
-        return null;
-    }
-
-    // method_5705 = pushAwayFrom
-    @Inject(method = "pushAwayFrom", at = @At("HEAD"), cancellable = true, remap = false)
+    @Shadow private static Vec3d movementInputToVelocity(Vec3d movementInput, float speed, float yaw) { return null; }
+    @Inject(method = "pushAwayFrom", at = @At("HEAD"), cancellable = true)
     private void hookPushAwayFrom(Entity entity, CallbackInfo ci) {
         PushEvent.Entities event = new PushEvent.Entities(((Entity) ((Object) this)), entity);
         event.post();
-        if (event.isCancelled()) {
-            ci.cancel();
-        }
+        if (event.isCancelled()) ci.cancel();
     }
 
-    // method_5784 = updateVelocity
-    @Inject(method = "updateVelocity", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "updateVelocity", at = @At("HEAD"), cancellable = true)
     private void hookUpdateVelocity(float speed, Vec3d movementInput, CallbackInfo ci) {
         if ((Object) this == mc.player) {
-            LookEvent.LookVelocityEvent updateVelocityEvent = new LookEvent.LookVelocityEvent(
+            LookEvent.LookVelocityEvent event = new LookEvent.LookVelocityEvent(
                 movementInput, speed, mc.player.getYaw(), movementInputToVelocity(movementInput, speed, mc.player.getYaw())
             );
-            updateVelocityEvent.post();
-            if (updateVelocityEvent.isCancelled()) {
+            event.post();
+            if (event.isCancelled()) {
                 ci.cancel();
-                mc.player.setVelocity(mc.player.getVelocity().add(updateVelocityEvent.getVelocity()));
+                mc.player.setVelocity(mc.player.getVelocity().add(event.getVelocity()));
             }
         }
     }
 
-    // method_18376 = getPose
-    @Inject(method = "getPose", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "getPose", at = @At("HEAD"), cancellable = true)
     private void getPoseHook(CallbackInfoReturnable<EntityPose> info) {
         if ((Object) this == mc.player) {
             if (LongJump.isGrimJumping() || Flight.isGrimFlying() || ElytraFly.isPacketFlying()) {
@@ -65,33 +55,18 @@ public abstract class MixinEntity implements IMinecraft {
         }
     }
 
-    // method_36454 = isCrawling
-    @Inject(method = "isCrawling", at = @At("HEAD"), cancellable = true, remap = false)
-    private void isCrawlingHook(CallbackInfoReturnable<Boolean> info) {
-        if ((Object) this == mc.player && Tweaks.INSTANCE.isEnabled() && Tweaks.INSTANCE.noCrawl.getValue()) {
-            info.setReturnValue(false);
-        }
-    }
-
-    // method_5723 = getTeamColorValue
-    @Inject(method = "getTeamColorValue", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "getTeamColorValue", at = @At("HEAD"), cancellable = true)
     private void hookGetTeamColorValue(CallbackInfoReturnable<Integer> cir) {
         TeamColorEvent event = new TeamColorEvent((Entity) (Object) this);
         event.post();
-        if (event.isCancelled()) {
-            cir.setReturnValue(event.getColor());
-        }
+        if (event.isCancelled()) cir.setReturnValue(event.getColor());
     }
 
-    // method_5844 = slowMovement
-    @Inject(method = "slowMovement", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "slowMovement", at = @At("HEAD"), cancellable = true)
     private void hookSlowMovement(BlockState state, Vec3d multiplier, CallbackInfo ci) {
         if ((Object) this != mc.player) return;
         LivingEvent.BlockSlowdown event = new LivingEvent.BlockSlowdown(state);
         event.post();
-        if (event.isCancelled()) {
-            ci.cancel();
-        }
+        if (event.isCancelled()) ci.cancel();
     }
 }
-                                    
