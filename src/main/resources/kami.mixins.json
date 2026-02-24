@@ -2,9 +2,14 @@
   "required": true,
   "minVersion": "0.8",
   "package": "me.skitttyy.kami.mixin",
-  "compatibilityLevel": "JAVA_17",
-  "refmap": "sn0w-refmap.json",
-  "verbose": false,
+  "compatibilityLevel": "JAVA_21",
+  "refmap": "sn0w.refmap.json",
+  "mixins": [
+    "MixinCobwebBlock",
+    "MixinTextVisitFactory",
+    "accessor.IFireworkRocketEntity",
+    "accessor.IHandledScreen"
+  ],
   "client": [
     "BossBarHudMixin",
     "CapeFeatureRendererMixin",
@@ -95,11 +100,5 @@
   ],
   "injectors": {
     "defaultRequire": 1
-  },
-  "mixins": [
-    "MixinCobwebBlock",
-    "MixinTextVisitFactory",
-    "accessor.IFireworkRocketEntity",
-    "accessor.IHandledScreen"
-  ]
+  }
 }
