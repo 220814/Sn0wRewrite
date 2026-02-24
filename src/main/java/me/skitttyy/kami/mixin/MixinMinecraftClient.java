@@ -8,9 +8,7 @@ import me.skitttyy.kami.api.gui.font.Fonts;
 import me.skitttyy.kami.api.utils.render.WindowResizeCallback;
 import me.skitttyy.kami.impl.features.modules.client.FontModule;
 import me.skitttyy.kami.impl.features.modules.client.Optimizer;
-import me.skitttyy.kami.impl.features.modules.ghost.FastMechs;
 import me.skitttyy.kami.impl.features.modules.misc.MultiTask;
-import me.skitttyy.kami.mixin.accessor.IMinecraftClient;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.RunArgs;
 import net.minecraft.client.gui.screen.Screen;
@@ -26,13 +24,14 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static me.skitttyy.kami.api.wrapper.IMinecraft.mc;
-
 @Mixin(MinecraftClient.class)
 public abstract class MixinMinecraftClient {
     @Shadow public abstract boolean isWindowFocused();
     @Shadow @Final private Window window;
     @Shadow @Final public GameOptions options;
+    @Shadow public ClientPlayerInteractionManager interactionManager;
+    @Shadow public ClientPlayerEntity player;
+
     @Inject(method = "render", at = @At("HEAD"))
     public void renderHook(boolean tick, CallbackInfo ci) {
         new FrameEvent.FrameFlipEvent().post();
@@ -67,14 +66,18 @@ public abstract class MixinMinecraftClient {
         }
     }
 
-    @Redirect(method = "handleBlockBreaking", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isUsingItem()Z"))
-    private boolean hookIsUsingItem(ClientPlayerEntity instance) {
-        return !MultiTask.INSTANCE.isEnabled() && instance.isUsingItem();
+    @Inject(method = "handleBlockBreaking", at = @At("HEAD"))
+    private void onHandleBlockBreaking(boolean breaking, CallbackInfo ci) {
+        if (MultiTask.INSTANCE.isEnabled() && this.player != null && this.player.isUsingItem()) {
+            return;
+        }
     }
 
-    @Redirect(method = "doItemUse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerInteractionManager;isBreakingBlock()Z"))
-    private boolean hookIsBreakingBlock(ClientPlayerInteractionManager instance) {
-        return !MultiTask.INSTANCE.isEnabled() && instance.isBreakingBlock();
+    @Inject(method = "doItemUse", at = @At("HEAD"))
+    private void onDoItemUse(CallbackInfo ci) {
+        if (MultiTask.INSTANCE.isEnabled() && this.interactionManager != null && this.interactionManager.isBreakingBlock()) {
+            return;
+        }
     }
 
     @Inject(method = "getFramerateLimit", at = @At("HEAD"), cancellable = true)
