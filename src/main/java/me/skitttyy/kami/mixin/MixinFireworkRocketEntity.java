@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Mixin(FireworkRocketEntity.class)
+@Mixin(value = FireworkRocketEntity.class, priority = 1100)
 public abstract class MixinFireworkRocketEntity implements IMinecraft {
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;method_18075(DDD)V"))
-    private void setVelocityProxy(Entity instance, double x, double y, double z) {
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;setVelocity(Lnet/minecraft/util/math/Vec3d;)V"))
+    private void setVelocityProxy(Entity instance, Vec3d velocity) {
         if (instance == MinecraftClient.getInstance().player && FastFirework.INSTANCE.isEnabled()) {
             Vec3d rotationVector = mc.player.getRotationVector();
             if (AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
@@ -26,13 +26,14 @@ public abstract class MixinFireworkRocketEntity implements IMinecraft {
             double speed = FastFirework.INSTANCE.getSpeed();
             Vec3d currentVel = instance.getVelocity();
             
-            instance.setVelocity(
+            Vec3d newVel = new Vec3d(
                 currentVel.x + (rotationVector.x * speed + (rotationVector.x * 1.5 - currentVel.x) * 0.5),
                 currentVel.y + (rotationVector.y * speed + (rotationVector.y * 1.5 - currentVel.y) * 0.5),
                 currentVel.z + (rotationVector.z * speed + (rotationVector.z * 1.5 - currentVel.z) * 0.5)
             );
+            instance.setVelocity(newVel);
         } else {
-            instance.setVelocity(x, y, z);
+            instance.setVelocity(velocity);
         }
     }
 
