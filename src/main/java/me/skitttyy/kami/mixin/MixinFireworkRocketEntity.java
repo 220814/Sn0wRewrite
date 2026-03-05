@@ -12,13 +12,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import static me.skitttyy.kami.api.wrapper.IMinecraft.mc;
-
 @Mixin(FireworkRocketEntity.class)
-public class MixinFireworkRocketEntity implements IMinecraft {
+public abstract class MixinFireworkRocketEntity implements IMinecraft {
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;method_18075(DDD)V"))
-    private void setVelocityProxy(Entity instance, double x, double y, double z) {
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;setVelocity(Lnet/minecraft/util/math/Vec3d;)V"))
+    private void setVelocityProxy(Entity instance, Vec3d velocity) {
         if (instance == MinecraftClient.getInstance().player && FastFirework.INSTANCE.isEnabled()) {
             Vec3d rotationVector = mc.player.getRotationVector();
             if (AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
@@ -34,7 +32,7 @@ public class MixinFireworkRocketEntity implements IMinecraft {
                 currentVel.z + (rotationVector.z * speed + (rotationVector.z * 1.5 - currentVel.z) * 0.5)
             );
         } else {
-            instance.setVelocity(x, y, z);
+            instance.setVelocity(velocity);
         }
     }
 
