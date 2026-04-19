@@ -15,10 +15,11 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(value = FireworkRocketEntity.class, priority = 1100)
 public abstract class MixinFireworkRocketEntity implements IMinecraft {
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;method_18799(Lnet/minecraft/util/math/Vec3d;)V"))
+    @Redirect(method = "method_5773", at = @At(value = "INVOKE", target = "Lnet/minecraft/class_1297;method_18799(Lnet/minecraft/class_243;)V"))
     private void setVelocityProxy(Entity instance, Vec3d velocity) {
         if (instance == MinecraftClient.getInstance().player && FastFirework.INSTANCE.isEnabled()) {
-            Vec3d rotationVector = mc.player.getRotationVector();
+            Vec3d rotationVector = instance.method_5720();
+            
             if (AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
                 rotationVector = RotationManager.INSTANCE.getRotationVector();
             }
@@ -31,20 +32,19 @@ public abstract class MixinFireworkRocketEntity implements IMinecraft {
                 currentVel.y + (rotationVector.y * speed + (rotationVector.y * 1.5 - currentVel.y) * 0.5),
                 currentVel.z + (rotationVector.z * speed + (rotationVector.z * 1.5 - currentVel.z) * 0.5)
             );
-            instance.setVelocity(newVel);
+            instance.method_18799(newVel);
         } else {
-            instance.setVelocity(velocity);
+            instance.method_18799(velocity);
         }
     }
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;getRotationVector()Lnet/minecraft/util/math/Vec3d;"))
+    @Redirect(method = "method_5773", at = @At(value = "INVOKE", target = "Lnet/minecraft/class_1297;method_5720()Lnet/minecraft/class_243;"))
     private Vec3d getRotationVectorProxy(Entity instance) {
         if (instance == MinecraftClient.getInstance().player) {
             if (AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
                 return RotationManager.INSTANCE.getRotationVector();
             }
         }
-        return instance.getRotationVector();
+        return instance.method_5720();
     }
 }
-                
