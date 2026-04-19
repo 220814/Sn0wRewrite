@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(value = FireworkRocketEntity.class, priority = 10000)
 public abstract class MixinFireworkRocketEntity implements IMinecraft {
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "setVelocity(Lnet/minecraft/util/math/Vec3d;)V"))
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;setVelocity(Lnet/minecraft/util/math/Vec3d;)V"))
     private void setVelocityProxy(Entity instance, Vec3d velocity) {
         if (instance == MinecraftClient.getInstance().player && FastFirework.INSTANCE.isEnabled()) {
             Vec3d rotation = (AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) 
@@ -35,7 +35,7 @@ public abstract class MixinFireworkRocketEntity implements IMinecraft {
         }
     }
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "getRotationVector()Lnet/minecraft/util/math/Vec3d;"))
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;getRotationVector()Lnet/minecraft/util/math/Vec3d;"))
     private Vec3d getRotationVectorProxy(Entity instance) {
         if (instance == MinecraftClient.getInstance().player && AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
             return RotationManager.INSTANCE.getRotationVector();
