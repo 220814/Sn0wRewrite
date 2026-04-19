@@ -59,18 +59,19 @@ loom {
 }
 
 compileJava {
-    String contents = ""
     File update = file 'src/main/java/me/skitttyy/kami/impl/KamiMod.java'
-    contents = update.getText( 'UTF-8' )
+    String contents = update.getText( 'UTF-8' )
     contents = contents.replaceAll( 'HASH = "(.*?)"', 'HASH = "' + hash + '"' )
     contents = contents.replaceAll( 'VERSION = "(.*?)"', 'VERSION = "' + watermarkVersion + '"' )
-
     update.write( contents, 'UTF-8' )
 }
 
 dependencies {
     implementation 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    
+    // Fix lỗi unknown enum constant Status.MAINTAINED
+    implementation 'org.apiguardian:apiguardian-api:1.1.2'
 
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
@@ -125,8 +126,6 @@ publishing {
             from components.java
         }
     }
-    repositories {
-    }
 }
 
 loom {
@@ -145,9 +144,7 @@ loom {
 sourceSets {
     main {
         resources {
-            srcDirs += [
-                    'src/main/generated'
-            ]
+            srcDirs += ['src/main/generated']
         }
     }
 }
