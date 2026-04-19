@@ -17,7 +17,7 @@ public abstract class MixinFireworkRocketEntity implements IMinecraft {
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/projectile/FireworkRocketEntity;setVelocity(Lnet/minecraft/util/math/Vec3d;)V"))
     private void setVelocityProxy(FireworkRocketEntity instance, Vec3d velocity) {
-        if (instance == MinecraftClient.getInstance().player && FastFirework.INSTANCE.isEnabled()) {
+        if ((Object) instance == MinecraftClient.getInstance().player && FastFirework.INSTANCE.isEnabled()) {
             Vec3d rotation = (AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) 
                 ? RotationManager.INSTANCE.getRotationVector() 
                 : instance.getRotationVector();
@@ -37,9 +37,10 @@ public abstract class MixinFireworkRocketEntity implements IMinecraft {
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/projectile/FireworkRocketEntity;getRotationVector()Lnet/minecraft/util/math/Vec3d;"))
     private Vec3d getRotationVectorProxy(FireworkRocketEntity instance) {
-        if (instance == MinecraftClient.getInstance().player && AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
+        if ((Object) instance == MinecraftClient.getInstance().player && AntiCheat.INSTANCE.strafeFix.getValue() && RotationManager.INSTANCE.getRotation() != null) {
             return RotationManager.INSTANCE.getRotationVector();
         }
         return instance.getRotationVector();
     }
 }
+                       
