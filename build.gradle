@@ -70,7 +70,7 @@ dependencies {
     implementation 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
     
-    // Fix lỗi unknown enum constant Status.MAINTAINED
+    // unknown enum constant Status.MAINTAINED
     implementation 'org.apiguardian:apiguardian-api:1.1.2'
 
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
